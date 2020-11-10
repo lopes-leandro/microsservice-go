@@ -4,6 +4,7 @@ services:
 
   rabbit:
     image: "rabbitmq:3-management"
+    container_name: rabbit
     environment:
       RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
       RABBITMQ_DEFAULT_USER: "rabbitmq"
@@ -12,3 +13,34 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+
+  checkout:
+    #build: ./checkout
+    image: lopez12/microservice-checkout:latest
+    container_name: microservice-checkout
+    depends_on:
+      - "rabbit"
+    ports:
+      - 9898:9898
+  
+  pedido:
+    #build: ./pedido
+    image: lopez12/microservice-pedido:latest
+    container_name: microservice-pedido
+    depends_on:
+      - "rabbit"
+      - "checkout"
+    restart: on-failure
+    #links:
+    #  - "rabbit:rabbitmq"
+    ports:
+      - 9093:9093
+  
+  voucher:
+    #build: ./voucher
+    image: lopez12/microservice-voucher:latest
+    container_name: microservice-voucher
+    depends_on:
+      - "pedido"
+    ports:
+      - 9092:9092
